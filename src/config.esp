@@ -43,28 +43,54 @@ bool ICACHE_FLASH_ATTR loadConfiguration()
 		}
 	}
 
-	if (hardware.containsKey("buttonpin"))
+	if (hardware.containsKey("doorstatpin"))
 	{
-		buttonPin = hardware["buttonpin"];
-		if (buttonPin != 255)
+		doorstatpin = hardware["doorstatpin"];
+		if (doorstatpin!=255)
 		{
-			button = Bounce();
-			button.attach(buttonPin, INPUT_PULLUP);
-			button.interval(30);
+			pinMode(doorstatpin, INPUT);
 		}
 	}
+
+	if (hardware.containsKey("doorbellpin"))
+	{
+		doorbellpin = hardware["doorbellpin"];
+		if (doorbellpin!=255)
+		{
+			pinMode(doorbellpin, INPUT);
+		}
+	}
+
+	if (hardware.containsKey("openlockpin"))
+	{
+		openlockpin = hardware["openlockpin"];
+		if (openlockpin != 255)
+		{
+			openLockButton = Bounce();
+			openLockButton.attach(openlockpin, INPUT_PULLUP);
+			openLockButton.interval(30);
+		}
+	}
+
+	if (hardware.containsKey("numrelays"))
+	{
+		numRelays = hardware["numrelays"];
+	}
+	else numRelays=1;
+
+
 #ifdef OFFICIALBOARD
 	setupWiegandReader(5, 4);
 #endif
 #ifndef OFFICIALBOARD
-	readerType = hardware["readerType"];
-	if (readerType == 1 || readerType == 5)
+	readertype = hardware["readertype"];
+	if (readertype == READER_WIEGAND || readertype == READER_WIEGAND_RDM6300)
 	{
 		int wgd0pin = hardware["wgd0pin"];
 		int wgd1pin = hardware["wgd1pin"];
 		setupWiegandReader(wgd0pin, wgd1pin); // also some other settings like weather to use keypad or not, LED pin, BUZZER pin, Wiegand 26/34 version
 	}
-	else if (readerType == 0 || readerType == 4)
+	else if (readertype == READER_MFRC522 || readertype == READER_MFRC522_RDM6300)
 	{
 		rfidss = 15;
 		if (hardware.containsKey("sspin"))
@@ -74,20 +100,20 @@ bool ICACHE_FLASH_ATTR loadConfiguration()
 		int rfidgain = hardware["rfidgain"];
 		setupMFRC522Reader(rfidss, rfidgain);
 	}
-	else if (readerType == 2 || readerType == 6)
+	else if (readertype == READER_PN532 || readertype == READER_PN532_RDM6300)
 	{
 		rfidss = hardware["sspin"];
 		setupPN532Reader(rfidss);
 	}
 	#ifndef DEBUG
-	if (readerType>2) Serial.begin(9600);
+	if (readertype>2) Serial.begin(9600);
 	#endif
 #endif
 	autoRestartIntervalSeconds = general["restart"];
 	wifiTimeout = network["offtime"];
 	const char *bssidmac = network["bssid"];
-	byte bssid[6];
-	parseBytes(bssidmac, ':', bssid, 6, 16);
+	byte bssid[6]={0,0,0,0,0,0};
+	if (strlen(bssidmac) > 0 ) parseBytes(bssidmac, ':', bssid, 6, 16);
 	deviceHostname = strdup(general["hostnm"]);
 	WiFi.hostname(deviceHostname);
 	if (!MDNS.begin(deviceHostname))
@@ -100,13 +126,25 @@ bool ICACHE_FLASH_ATTR loadConfiguration()
 	const char *ntpserver = ntp["server"];
 	int ntpinter = ntp["interval"];
 	timeZone = ntp["timezone"];
-	activateTime = hardware["rtime"];
-	lockType = hardware["ltype"];
-	relayType = hardware["rtype"];
+	activateTime[0] = hardware["rtime"];
+	lockType[0]= hardware["ltype"];
+	relayType[0] = hardware["rtype"];
+
 #ifndef OFFICIALBOARD
-	relayPin = hardware["rpin"];
-	pinMode(relayPin, OUTPUT);
-	digitalWrite(relayPin, !relayType);
+	relayPin[0] = hardware["rpin"];
+	pinMode(relayPin[0], OUTPUT);
+	digitalWrite(relayPin[0], !relayType[0]);
+
+	for (int i = 1; i <numRelays ; i++){
+		JsonObject &relay = hardware["relay"+String((i+1))];
+ 		activateTime[i] = relay["rtime"];
+		lockType[i]= relay["ltype"];
+		relayType[i] = relay["rtype"];
+		relayPin[i] = relay["rpin"];
+		pinMode(relayPin[i], OUTPUT);
+		digitalWrite(relayPin[i], !relayType[i]);
+	}
+
 #endif
 	const char *ssid = network["ssid"];
 	const char *password = network["pswd"];
@@ -187,19 +225,30 @@ bool ICACHE_FLASH_ATTR loadConfiguration()
 		mhs = strdup(mhsString.c_str());
 
 		mport = mqtt["port"];
-		
+
 		String muserString = mqtt["user"];
 		muser = strdup(muserString.c_str());
 		String mpasString = mqtt["pswd"];
 		mpas = strdup(mpasString.c_str());
 		String mqttTopicString = mqtt["topic"];
 		mqttTopic = strdup(mqttTopicString.c_str());
+
+		interval = mqtt["syncrate"];
+
+		if (mqtt["mqttlog"]==1)
+			mqttEvents = true;
+		else
+			mqttEvents = false;
+
+
 		
 		mqttClient.setServer(mhs, mport);
 		mqttClient.setCredentials(muser, mpas);
 		mqttClient.onDisconnect(onMqttDisconnect);
 		mqttClient.onPublish(onMqttPublish);
+		mqttClient.onSubscribe(onMqttSubscribe);
 		mqttClient.onConnect(onMqttConnect);
+		mqttClient.onMessage(onMqttMessage);
 #ifdef DEBUG
 		Serial.println("[ INFO ] try to call mqttconnect ");
 #endif

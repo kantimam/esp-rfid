@@ -1,6 +1,27 @@
+# Announcement
+
+We are rising funds for next version (2.0) of ESP-RFID.
+
+<p align="center">
+  <img src="https://opencollective.com/esp-rfid/tiers/esp-rfid-user.svg?avatarHeight=56">
+</p>
+
+What to expect from version 2.0:
+
+* Better Wi-Fi connection handling
+* MQTT Subscribing (activate relay on MQTT event)
+* Better handling of hardware state (like health checks)
+* Time Based One Time Password access (keypad abstraction layer)
+* More polished WebUI
+* Yet still Open Source (MIT License)
+* Optional Goal --> NFC NDEF transactions from mobile phone to esp-rfid and vice versa
+
+---
+
+
 # ESP RFID - Access Control with ESP8266, RC522 PN532 Wiegand RDM6300
 
-[![Chat at https://gitter.im/esp-rfid/Lobby](https://badges.gitter.im/esp-rfid.svg)](https://gitter.im/esp-rfid/Lobby) [![Build Status](https://travis-ci.org/esprfid/esp-rfid.svg?branch=stable)](https://travis-ci.org/esprfid/esp-rfid) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d475052a09bd4865bc2654f524614cba)](https://www.codacy.com/app/omersiar/esp-rfid?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=esprfid/esp-rfid&amp;utm_campaign=Badge_Grade) [![BCH compliance](https://bettercodehub.com/edge/badge/esprfid/esp-rfid?branch=stable)](https://bettercodehub.com/) [![Bountysource](https://api.bountysource.com/badge/team?team_id=242217)](https://salt.bountysource.com/checkout/amount?team=esp-rfid)
+[![Backers on Open Collective](https://opencollective.com/esp-rfid/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/esp-rfid/sponsors/badge.svg)](#sponsors) [![Chat at https://gitter.im/esp-rfid/Lobby](https://badges.gitter.im/esp-rfid.svg)](https://gitter.im/esp-rfid/Lobby) [![Build Status](https://travis-ci.org/esprfid/esp-rfid.svg?branch=stable)](https://travis-ci.org/esprfid/esp-rfid) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d475052a09bd4865bc2654f524614cba)](https://www.codacy.com/app/omersiar/esp-rfid?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=esprfid/esp-rfid&amp;utm_campaign=Badge_Grade) [![BCH compliance](https://bettercodehub.com/edge/badge/esprfid/esp-rfid?branch=stable)](https://bettercodehub.com/) [![Bountysource](https://api.bountysource.com/badge/team?team_id=242217)](https://salt.bountysource.com/checkout/amount?team=esp-rfid)
 
 Access Control system using a cheap MFRC522, PN532 RFID, RDM6300 readers or Wiegand RFID readers and Espressif's ESP8266 Microcontroller. 
 
@@ -106,16 +127,26 @@ If you want to edit esp-rfid's Web UI you will need (unless using compiled execu
 * npm (comes with NodeJS installer)
 * Gulp (can be installed with npm)
 
-Gulp script also minifies HTML and JS files and compresses (gzip) them. 
+Gulp script also minifies HTML and JS files and compresses (gzip) them.
+
+To minify and compress the frontend, enter the folder ```tools/webfilesbuilder``` and:
+* Run ```npm install``` to install dependencies
+* Run ```npx gulp``` to compress the web UI to make it ready for the ESP
 
 In order to test your changes without flashing the firmware you can launch websocket emulator which is included in tools directory.
 * You will need to Node JS for websocket emulator.
-* Run ```npm update``` to install dependencies
+* Run ```npm install``` to install dependencies
 * Run emulator  ```node wserver.js```
-* then you will need to launch your browser with CORS disabled:
-* ```chrome.exe --args --disable-web-security -–allow-file-access-from-files --user-data-dir="C:\Users\USERNAME"```
 
-Get more information here: https://stackoverflow.com/questions/3102819/disable-same-origin-policy-in-chrome
+There are two alternative ways to test the UI
+1. you can launch your browser with CORS disabled:
+  ```chrome.exe --args --disable-web-security -–allow-file-access-from-files --user-data-dir="C:\Users\USERNAME"```
+  and then open the HTML files directly (Get more information [here](https://stackoverflow.com/questions/3102819/disable-same-origin-policy-in-chrome))
+2. alternatively, you can launch a web server from the ```src/websrc``` folder, for example with Python, like this:
+  ```python3 -m http.server```
+  and then visit ```http://0.0.0.0:8000/```
+
+When testing locally, use the password ```neo``` for admin capabilities.
 
 
 ### Pin Layout
@@ -127,9 +158,10 @@ The following table shows the typical pin layout used for connecting readers har
 | GPIO-15 | D8            |         | SS    | SDA/SS  |         |
 | GPIO-13 | D7            | D0      | MOSI  | MOSI    |         |
 | GPIO-12 | D6            | D1      | MISO  | MISO    |         |
-| GPIO-14 | D5            |         | SCK   | SCK     | TX      |
+| GPIO-14 | D5            |         | SCK   | SCK     |         |
 | GPIO-04 | D2            |         |       |         |         |
 | GPIO-05 | D1            |         |       |         |         |
+| GPIO-03 | RX            |         |       |         | TX      |
 
 For Wiegand based readers, you can configure D0 and D1 pins via settings page. By default, D0 is GPIO-4 and D1 is GPIO-5
 
@@ -149,6 +181,9 @@ For Wiegand based readers, you can configure D0 and D1 pins via settings page. B
 * Choose "Allow Access" if you want to
 * Click "Add"
 * Congratulations, everything went well, if you encounter any issue feel free to ask help on GitHub.
+
+### MQTT
+You can integrate ESP-RFID with other systems using MQTT. Read the [additional documentation](./README-ADDON.md) for all the details.
 
 ### Known Issues
 * You need to connect your MFRC522 reader to your ESP properly or you will end up with a boot loop
@@ -200,6 +235,8 @@ At least 1000 unique User (RFID Tag) can be handled, the test were performed on 
 * [ESP-IO](https://github.com/Pako2/EventGhostPlugins/tree/master/ESP-IO) Project to manipulate GPIOs with EventGhost
 * [ESP-RCM](https://github.com/Pako2/esp-rcm) Room Climate Monitor with ESP8266, HTU21D, Si7021, AM2320
 
+[ESP-RFID-PY](https://github.com/esprfid/esp-rfid-py) Micro-Python implementation of esp-rfid is also made available by @iBobik
+
 ### Acknowledgements
 
 - @rneurink
@@ -209,16 +246,51 @@ At least 1000 unique User (RFID Tag) can be handled, the test were performed on 
 - @romanzava
 - @arduino12
 - @Pako2
+- @marelab
 
 See [ChangeLog](https://github.com/esprfid/esp-rfid/blob/dev/CHANGELOG.md)
 
 ## Donations
-If this project helps you in a way, you can buy us a beer. You can make a donation to the ESP-RFID community with [Bountysource](https://salt.bountysource.com/teams/esp-rfid)
+[![OC](https://opencollective.com/esp-rfid/tiers/esp-rfid-user.svg?avatarHeight=56)](https://opencollective.com/esp-rfid)
+
+Developing fully open, extensively tested embedded software is hard and time consuming work. Please consider making donations to support developers behind this beautiful software.
+
+Donations **transparently** processed by **[Open Collective](https://opencollective.com/how-it-works)** and expenses are being made public by OC's open ledger.
 
 * 2017-10-03 [steinar-t](https://github.com/steinar-t)
 * 2017-12-10 [saschaludwig](https://github.com/saschaludwig)
 * 2018-10-02 Dennis Parsch
 * 2019-01-12 Chris-topher Slater
+* 2019-04-23 Klaus Blum
+* 2019-04-25 Andre Dieteich
+
+## Contributors
+
+This project exists thanks to all the people who contribute. 
+<a href="https://github.com/esprfid/esp-rfid/graphs/contributors"><img src="https://opencollective.com/esp-rfid/contributors.svg?width=890&button=false" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/esp-rfid#backer)]
+
+<a href="https://opencollective.com/esp-rfid#backers" target="_blank"><img src="https://opencollective.com/esp-rfid/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/esp-rfid#sponsor)]
+
+<a href="https://opencollective.com/esp-rfid/sponsor/0/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/esp-rfid/sponsor/1/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/esp-rfid/sponsor/2/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/esp-rfid/sponsor/3/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/esp-rfid/sponsor/4/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/esp-rfid/sponsor/5/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/esp-rfid/sponsor/6/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/esp-rfid/sponsor/7/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/esp-rfid/sponsor/8/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/esp-rfid/sponsor/9/website" target="_blank"><img src="https://opencollective.com/esp-rfid/sponsor/9/avatar.svg"></a>
 
 ## License
 The code parts written by ESP-RFID project's authors are licensed under [MIT License](https://github.com/esprfid/esp-rfid/blob/stable/LICENSE), 3rd party libraries that are used by this project are licensed under different license schemes, please check them out as well.

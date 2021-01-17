@@ -126,7 +126,7 @@
     <div class="row form-group">
         <label class="col-xs-3">Reader Type<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose RFID reader type."></i></label>
         <div class="col-xs-9 col-md-5">
-            <select class="form-control input-sm" id="readerType" onchange="handleReader();">
+            <select class="form-control input-sm" id="readertype" onchange="handleReader();">
                 <option selected="selected" value="0">MFRC522</option>
                 <option value="1">Wiegand</option>
                 <option value="2">PN532</option>
@@ -201,7 +201,7 @@
                 </span>
         </div>
     </div>
-    <br>
+    <hr>
     <div class="row form-group">
         <label class="col-xs-3">WiFi LED<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose &quot;WiFi LED&quot; pin"></i></label>
         <span class="col-xs-9 col-md-5">
@@ -221,6 +221,74 @@
         </span>
     </div>
     <div class="row form-group">
+        <label class="col-xs-3">Door Status<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose &quot;Door Status&quot; pin"></i></label>
+        <span class="col-xs-9 col-md-5">
+              <select class="form-control input-sm" id="doorstatpin">
+                <option selected="selected" value="255">None</option>
+                <option value="0">GPIO-0</option>
+                <option value="1">GPIO-1</option>
+                <option value="2">GPIO-2</option>
+                <option value="4">GPIO-4</option>
+                <option value="5">GPIO-5</option>
+                <option value="12">GPIO-12</option>
+                <option value="13">GPIO-13</option>
+                <option value="14">GPIO-14</option>
+                <option value="15">GPIO-15</option>
+                <option value="16">GPIO-16 (OFFICIAL_BOARD)</option>
+              </select>
+        </span>
+    </div>
+    <div class="row form-group">
+        <label class="col-xs-3">Doorbell<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose &quot;Doorbell&quot; pin"></i></label>
+        <span class="col-xs-9 col-md-5">
+              <select class="form-control input-sm" id="doorbellpin">
+                <option selected="selected" value="255">None</option>
+                <option value="0">GPIO-0</option>
+                <option value="1">GPIO-1</option>
+                <option value="2">GPIO-2</option>
+                <option value="4">GPIO-4</option>
+                <option value="5">GPIO-5</option>
+                <option value="12">GPIO-12</option>
+                <option value="13">GPIO-13</option>
+                <option value="14">GPIO-14</option>
+                <option value="15">GPIO-15</option>
+                <option value="16">GPIO-16</option>
+              </select>
+        </span>
+    </div>
+    <div class="row form-group">
+        <label class="col-xs-3">Open Lock Pin<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose a pin to have a button with equivalent behaviour to scan a valid card (open/close button)."></i></label>
+        <span class="col-xs-9 col-md-5">
+            <select class="form-control input-sm" id="openlockpin">
+                <option selected="selected" value="255">None</option>
+                <option value="4">GPIO-4</option>
+                <option value="5">GPIO-5</option>
+                <option value="12">GPIO-12</option>
+                <option value="13">GPIO-13</option>
+                <option value="14">GPIO-14</option>
+            </select>
+        </span>
+    </div>
+    <hr>
+    <div class="row form-group">
+        <label class="col-xs-3">Number of relays<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose how many relays your board has"></i></label>
+        <span class="col-xs-6 col-md-5">
+                <select class="form-control input-sm" id="numrlys">
+                    <option selected="selected" value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+              </span>
+        <span class="col-xs-3">
+            <button id="changenumrly" type="button" class="btn btn-primary btn-xs" onclick="changeRelayNumber()">update</button><i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="left" data-content="Click here to display the right number of forms"></i>
+        </span>
+    </div>
+
+    <div id=relayformparent >
+     <div id=relayform>
+        <div id=relaytitle>Relay 1 Settings</div><br><br>
+        <div class="row form-group">
         <label class="col-xs-3">Relay Type<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Depending on your electrical setup, you can choose the relay type"></i></label>
         <span class="col-xs-9 col-md-5">
             <select class="form-control input-sm" id="typerly">
@@ -228,8 +296,8 @@
               <option value="0">Active Low</option>
             </select>
             </span>
-    </div>
-    <div class="row form-group">
+      </div>
+      <div class="row form-group">
         <label class="col-xs-3">Relay Pin<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose which ESP port is connected to your relay"></i></label>
         <span class="col-xs-6 col-md-5">
                 <select class="form-control input-sm" id="gpiorly">
@@ -246,37 +314,25 @@
                 </select>
               </span>
         <span class="col-xs-3">
-            <button id="testb" type="button" class="btn btn-primary btn-xs" onclick="testRelay()">Test</button><i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="left" data-content="Test previous relay setting. Keep in mind that this is actually triggers the relay."></i>
+            <button id="testb" type="button" class="btn btn-primary btn-xs" onclick="testRelay(1)">Test</button><i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="left" data-content="Test previous relay setting. Keep in mind that this is actually triggers the relay."></i>
         </span>
-    </div>
-    <div class="row form-group">
+      </div>
+      <div class="row form-group">
         <label class="col-xs-3">Lock Type<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Use momentary method for door lock counterparts, and the continuous one for electromagnetic locks."></i></label>
         <span class="col-xs-9 col-md-5">
-            <select class="form-control input-sm" id="lockType" onchange="handleLock();">
+            <select class="form-control input-sm" id="lockType" onchange="handleLock(1);">
                 <option selected="selected" value="0">Momentary</option>
                 <option value="1">Continuous</option>
             </select>
         </span>
-    </div>
-    <div class="row form-group" id="activateTimeForm">
+      </div>
+      <div class="row form-group" id="activateTimeForm">
         <label class="col-xs-3">Activate Time<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Relay Toggle time in Microseconds, usually 300ms is enough for the most electric door locks"></i></label>
         <span class="col-xs-9 col-md-5">
             <input class="form-control input-sm" value="300" placeholder="in Microsecond" id="delay" type="text" name="hightime">
         </span>
-    </div>
-    <br>
-    <div class="row form-group">
-        <label class="col-xs-3">Button Pin<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose a pin to have a button with equivalent behaviour to scan a valid card (open/close button)."></i></label>
-        <span class="col-xs-9 col-md-5">
-            <select class="form-control input-sm" id="buttonPin">
-                <option selected="selected" value="255">None</option>
-                <option value="4">GPIO-4</option>
-                <option value="5">GPIO-5</option>
-                <option value="12">GPIO-12</option>
-                <option value="13">GPIO-13</option>
-                <option value="14">GPIO-14</option>
-            </select>
-        </span>
+      </div>
+     </div> 
     </div>
     <div class="row form-group">
         <br>
@@ -302,7 +358,9 @@
                 <table id="latestlogtable" class="table" data-paging="true" data-filtering="true" data-sorting="true" data-editing="false" data-state="true"></table>
             </div>
         </div>
-        <button onclick="clearlatest()" class="btn btn-primary btn-sm">Clear Log</button>
+        <button id="clearlatestlogbtn" disabled="true" onclick="clearlatest()" class="btn btn-primary btn-sm">Clear Log</button>
+        <button id="savelatestlogbtn" disabled="true"  onclick="savelatest()"  class="btn btn-success btn-sm">Download</button>
+        <a id="downloadLatest" style="display:none"></a>
         <div style="clear:both;">
             <br>
             <br>
@@ -325,10 +383,78 @@
                 <table id="eventtable" class="table" data-paging="true" data-filtering="true" data-sorting="true" data-editing="false" data-state="true"></table>
             </div>
         </div>
-        <button onclick="clearevent()" class="btn btn-primary btn-sm">Clear Log</button>
+        <button id="cleareventlogbtn" disabled="true" onclick="clearevent()" class="btn btn-primary btn-sm">Clear Log</button>
+        <button id="saveeventlogbtn"  disabled="true" onclick="saveevent()" class="btn btn-success btn-sm">Download</button>
+        <a id="downloadEvent" style="display:none"></a>
         <div style="clear:both;">
             <br>
             <br>
+        </div>
+    </div>
+</div>
+<div id="logmaintenancecontent">
+    <br>
+    <br>
+    <div class="text-center" id="loading-img">
+        <h5>Please wait while fetching data...<span id="loadpages"></span></h5>
+        <br>
+    </div>
+    <div>
+        <legend>Log Maintenance</legend>
+        <div class="panel panel-default">
+            <div>
+                <table id="spifftable" class="table" data-paging="true" data-filtering="true" data-sorting="true" data-editing="false" data-state="true"></table>
+            </div>
+        </div>
+        <div style="clear:both;">
+            <br>
+            <br>
+        </div>
+    </div>
+</div>
+<div id="logsettingscontent">
+    <br>
+    <br>
+    <legend>Logfile Settings</legend>
+	    <br>
+    <div class="row form-group">
+        <label class="col-xs-3">Auto-Maintenance<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Please choose if you want to enable automatic maintenance"></i></label>
+        <div class="col-xs-9">
+            <form>
+                <label class="radio-inline">
+                    <input type="radio" value="1" name="logmaintenanceenabled">Enabled</label>
+                <label class="radio-inline">
+                    <input type="radio" value="0" name="logmaintenanceenabled" checked>Disabled</label>
+            </form>
+        </div>
+    </div>
+    <div class="row form-group">
+        <label class="col-xs-3">Rollover after KB<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="automatically roll over log files once they reach the given size"></i></label>
+        <span class="col-xs-9">
+    <input class="form-control input-sm" placeholder="10" style="display:inline;max-width:185px" id="rolloverkb" type="text">
+  </span>
+        <br>
+    </div>
+    <div class="row form-group">
+        <label class="col-xs-3">Max Files to keep<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Enter the number of rolled over logfiles you want to keep. If you do not want to automatically delete then enter 0"></i></label>
+        <span class="col-xs-9">
+    <input class="form-control input-sm" placeholder="4" value="" style="display:inline;max-width:185px" id="maxlogfilesnumber" type="text">
+  </span>
+        <br>
+    </div>
+    <div class="row form-group">
+        <label class="col-xs-3">Check SPIFF space<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="If you enable this and the flash memory is full then the oldest log file will be deleted automatically."></i></label>
+        <div class="col-xs-9">
+            <form>
+                <label class="radio-inline"><input type="radio" value="1" name="spiffwatch">Enabled</label>
+                <label class="radio-inline"><input type="radio" value="0" name="spiffwatch" checked>Disabled</label>
+            </form>
+        </div>
+        <br> 
+    </div>
+    <div class="row form-group">    
+        <div class="col-xs-9">
+            <button onclick="savelogsettings()" class="btn btn-primary btn-sm pull-left">Save</button>
         </div>
     </div>
 </div>
@@ -372,23 +498,39 @@
     <div class="row form-group">
         <label class="col-xs-3">Password<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="MQTT server password if any"></i></label>
         <span class="col-xs-9">
-    <input class="form-control input-sm" placeholder="" value="" style="display:inline;max-width:185px" id="mqttpwd"  type="password">
-  </span>
+            <input class="form-control input-sm" placeholder="" value="" style="display:inline;max-width:185px" id="mqttpwd" type="password">
+        </span>
         <br>
     </div>
     <div class="row form-group">
         <label class="col-xs-3">Topic<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="MQTT topic"></i></label>
         <span class="col-xs-9">
-    <input class="form-control input-sm" placeholder="MQTT topic" value="" style="display:inline;max-width:185px" id="mqtttopic" type="text">
-  </span>
+            <input class="form-control input-sm" placeholder="MQTT topic" value="" style="display:inline;max-width:185px" id="mqtttopic" type="text">
+        </span>
         <br>
+    </div>
+    <div class="row form-group">   
+        <label class="col-xs-3">Sync Time(sec)<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Sync rate"></i></label>
+        <span class="col-xs-9">
+            <input class="form-control input-sm" placeholder="Sync rate" value="" style="display:inline;max-width:185px" id="syncrate" type="text">
+        </span>
         <br>
-        <div class="col-xs-9 col-md-8">
-            <button onclick="savemqtt()" class="btn btn-primary btn-sm pull-right">Save</button>
+    </div>
+    <div class="row form-group">
+        <label class="col-xs-3">MQTT logging<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Enable MQTT logging disables logging on device"></i></label>
+        <div class="col-xs-9">
+            <form>
+                <label class="radio-inline"><input type="radio" value="1" name="mqttlog">Enabled</label>
+                <label class="radio-inline"><input type="radio" value="0" name="mqttlog" checked>Disabled</label>
+            </form>
+        </div>
+        <br> 
+    </div>
+    <div class="row form-group">    
+        <div class="col-xs-9">
+            <button onclick="savemqtt()" class="btn btn-primary btn-sm pull-left">Save</button>
         </div>
     </div>
-    <br>
-    <br>
 </div>
 <div id="networkcontent">
     <br>
@@ -708,7 +850,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                     <h4 class="modal-title" id="editor-title">Add User</h4>
                 </div>
-                <div class="modal-body">
+                <div id=usermodalbody class="modal-body">
                     <input type="number" id="id" name="id" class="hidden" />
                     <div class="form-group">
                         <label for="picctype" class="col-sm-3 control-label">PICC Type</label>
@@ -728,7 +870,7 @@
                             <input type="text" class="form-control" id="username" name="username" placeholder="User Name or Label" required>
                         </div>
                     </div>
-                    <div class="form-group required">
+                    <div id=useracctype class="form-group required">
                         <label for="acctype" class="col-sm-3 control-label">Access Type</label>
                         <div class="col-sm-9">
                             <select class="form-control" id="acctype" required>

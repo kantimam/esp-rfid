@@ -22,7 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
-#define VERSION "1.0.2"
+#define VERSION "1.3.3"
 
 #include "Arduino.h"
 #include <ESP8266WiFi.h>
@@ -37,15 +37,20 @@ SOFTWARE.
 #include "Ntp.h"
 #include <AsyncMqttClient.h>
 #include <Bounce2.h>
+#include "magicnumbers.h"
 
- //#define DEBUG
+ // #define DEBUG
+
+int numRelays=1;
 
 #ifdef OFFICIALBOARD
 
 #include <Wiegand.h>
 
 WIEGAND wg;
-int relayPin = 13;
+int relayPin[MAX_NUM_RELAYS] = {13};
+bool activateRelay [MAX_NUM_RELAYS]= {false};
+bool deactivateRelay [MAX_NUM_RELAYS]= {false};
 
 #endif
 
@@ -62,10 +67,20 @@ WIEGAND wg;
 RFID_Reader RFIDr;
 
 int rfidss;
-int readerType;
-int relayPin;
+int readertype;
+
+// relay specific variables
+
+int relayPin[MAX_NUM_RELAYS];
+bool activateRelay [MAX_NUM_RELAYS]= {false,false,false,false};
+bool deactivateRelay [MAX_NUM_RELAYS]= {false,false,false,false};
 
 #endif
+
+int lockType[MAX_NUM_RELAYS];
+int relayType[MAX_NUM_RELAYS];
+unsigned long activateTime[MAX_NUM_RELAYS];
+
 
 // these are from vendors
 #include "webh/glyphicons-halflings-regular.woff.gz.h"
@@ -86,8 +101,8 @@ extern "C" {
 NtpClient NTP;
 AsyncMqttClient mqttClient;
 Ticker mqttReconnectTimer;
-WiFiEventHandler wifiDisconnectHandler, wifiConnectHandler;
-Bounce button;
+WiFiEventHandler wifiDisconnectHandler, wifiConnectHandler, wifiOnStationModeGotIPHandler;
+Bounce openLockButton;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -97,7 +112,15 @@ bool wifiFlag = false;
 bool configMode = false;
 int wmode;
 uint8_t wifipin = 255;
-uint8_t buttonPin = 255;
+
+uint8_t doorstatpin = 255;
+uint8_t lastDoorState = 0;
+
+uint8_t openlockpin = 255;
+
+uint8_t doorbellpin = 255;
+uint8_t lastDoorbellState = 0;
+
 #define LEDoff HIGH
 #define LEDon LOW
 
@@ -108,11 +131,11 @@ unsigned long previousMillis = 0;
 unsigned long previousLoopMillis = 0;
 unsigned long currentMillis = 0;
 unsigned long cooldown = 0;
+unsigned long keyTimer = 0;
+String currentInput = "";
 unsigned long deltaTime = 0;
 unsigned long uptime = 0;
 bool shouldReboot = false;
-bool activateRelay = false;
-bool deactivateRelay = false;
 bool inAPMode = false;
 bool isWifiConnected = false;
 unsigned long autoRestartIntervalSeconds = 0;
@@ -133,13 +156,13 @@ char *muser = NULL;
 char *mpas = NULL;
 int mport;
 
-int lockType;
-int relayType;
-unsigned long activateTime;
 int timeZone;
 
 unsigned long nextbeat = 0;
-unsigned long interval = 1800;
+
+unsigned long interval 	= 180;  // Add to GUI & json config
+bool mqttEvents 		= false; // Sends events over MQTT disables SPIFFS file logging
+
 
 #include "log.esp"
 #include "mqtt.esp"
@@ -150,6 +173,8 @@ unsigned long interval = 1800;
 #include "config.esp"
 #include "websocket.esp"
 #include "webserver.esp"
+#include "door.esp"
+#include "doorbell.esp"
 
 void ICACHE_FLASH_ATTR setup()
 {
@@ -208,6 +233,8 @@ void ICACHE_FLASH_ATTR setup()
 	}
 	wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
 	wifiConnectHandler = WiFi.onStationModeConnected(onWifiConnect);
+	wifiOnStationModeGotIPHandler = WiFi.onStationModeGotIP(onWifiGotIP);
+	
 	configMode = loadConfiguration();
 	if (!configMode)
 	{
@@ -228,14 +255,14 @@ void ICACHE_RAM_ATTR loop()
 	uptime = NTP.getUptimeSec();
 	previousLoopMillis = currentMillis;
 
-	button.update();
-	if (button.fell()) 
+	openLockButton.update();
+	if (openLockButton.fell())
 	{
 #ifdef DEBUG
 		Serial.println("Button has been pressed");
 #endif
 		writeLatest("", "(used open/close button)", 1);
-		activateRelay = true;
+		activateRelay[0] = true;
 	}
 
 	if (wifipin != 255 && configMode && !wmode)
@@ -254,68 +281,82 @@ void ICACHE_RAM_ATTR loop()
 		}
 	}
 
+	if (doorstatpin != 255)
+	{
+		doorStatus();
+		delayMicroseconds(500);
+	}
+
+	if (doorbellpin != 255)
+	{
+		doorbellStatus();
+		delayMicroseconds(500);
+	}
+
 	if (currentMillis >= cooldown)
 	{
 		rfidloop();
 	}
 
 	// Continuous relay mode
-	if (lockType == 1)
-	{
-		if (activateRelay)
+
+	for (int currentRelay = 0; currentRelay < numRelays ; currentRelay++){
+	  if (lockType[currentRelay] == LOCKTYPE_CONTINUOUS)
+		{
+		if (activateRelay[currentRelay])
 		{
 			// currently OFF, need to switch ON
-			if (digitalRead(relayPin) == !relayType)
+			if (digitalRead(relayPin[currentRelay]) == !relayType[currentRelay])
 			{
 #ifdef DEBUG
 				Serial.print("mili : ");
 				Serial.println(millis());
-				Serial.println("activating relay now");
+				Serial.printf("activating relay %d now\n",currentRelay);
 #endif
-				digitalWrite(relayPin, relayType);
+				digitalWrite(relayPin[currentRelay], relayType[currentRelay]);
 			}
 			else	// currently ON, need to switch OFF
 			{
 #ifdef DEBUG
 				Serial.print("mili : ");
 				Serial.println(millis());
-				Serial.println("deactivating relay now");
-#endif				
-				digitalWrite(relayPin, !relayType);
+				Serial.printf("deactivating relay %d now\n",currentRelay);
+#endif
+				digitalWrite(relayPin[currentRelay], !relayType[currentRelay]);
 			}
-			activateRelay = false;	
+			activateRelay[currentRelay] = false;
 		}
-	}
-	else if (lockType == 0)	// momentary relay mode
-	{
-		if (activateRelay)
+	  }
+	  else if (lockType[currentRelay] == LOCKTYPE_MOMENTARY)	// momentary relay mode
+	  {
+		if (activateRelay[currentRelay])
 		{
 #ifdef DEBUG
 			Serial.print("mili : ");
 			Serial.println(millis());
-			Serial.println("activating relay now");
+			Serial.printf("activating relay %d now\n",currentRelay);
 #endif
-			digitalWrite(relayPin, relayType);
+			digitalWrite(relayPin[currentRelay], relayType[currentRelay]);
 			previousMillis = millis();
-			activateRelay = false;
-			deactivateRelay = true;
+			activateRelay[currentRelay] = false;
+			deactivateRelay[currentRelay] = true;
 		}
-		else if ((currentMillis - previousMillis >= activateTime) && (deactivateRelay))
+		else if ((currentMillis - previousMillis >= activateTime[currentRelay]) && (deactivateRelay[currentRelay]))
 		{
 #ifdef DEBUG
 			Serial.println(currentMillis);
 			Serial.println(previousMillis);
-			Serial.println(activateTime);
-			Serial.println(activateRelay);
+			Serial.println(activateTime[currentRelay]);
+			Serial.println(activateRelay[currentRelay]);
 			Serial.println("deactivate relay after this");
 			Serial.print("mili : ");
 			Serial.println(millis());
 #endif
-			digitalWrite(relayPin, !relayType);
-			deactivateRelay = false;
+			digitalWrite(relayPin[currentRelay], !relayType[currentRelay]);
+			deactivateRelay[currentRelay] = false;
 		}
+	  }
 	}
-
 	if (formatreq)
 	{
 #ifdef DEBUG
@@ -394,4 +435,15 @@ void ICACHE_RAM_ATTR loop()
 			}
 		}
 	}
+	// Keep an eye on timeout waiting for keypress
+	// Clear code and timer when timeout is reached
+	if (keyTimer > 0 && millis() - keyTimer >= KEYBOARD_TIMEOUT_MILIS)
+	{
+#ifdef DEBUG
+		Serial.println("[ INFO ] Keycode timeout");
+#endif
+		keyTimer = 0;
+		currentInput = "";
+	}
+
 }

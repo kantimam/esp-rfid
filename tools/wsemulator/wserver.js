@@ -2,10 +2,10 @@ console.log("[ INFO ] Starting ESP-RFID WebSocket Emulation Server");
 
 const WebSocket = require("ws");
 
-console.log("[ INFO ] You can connect to ws://localhost (default port is 80)");
+console.log("[ INFO ] You can connect to ws://localhost (default port is 8080)");
 
 const wss = new WebSocket.Server({
-    port: 80
+    port: 8080
 });
 
 wss.broadcast = function broadcast(data) {
@@ -257,7 +257,7 @@ var configfile = {
         "offtime": "180"
     },
     "hardware": {
-        "readerType": "0",
+        "readertype": "0",
         "wgd0pin": "4",
         "wgd1pin": "5",
         "sspin": "15",
